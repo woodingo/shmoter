@@ -1,13 +1,17 @@
 import * as React from 'react';
-import { Button, Image, View, StyleSheet, Text } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
-import Constants from 'expo-constants';
-import * as Permissions from 'expo-permissions';
+import { View, StyleSheet, Text, Image } from 'react-native';
+import $picture from '../stores/picture';
+import { useStore } from 'effector-react';
 
 const ResultsScreen = () => {
+  const picture = useStore($picture);
+
   return (
     <View style={styles.container}>
-      <Text>Hello!</Text>
+      <Text>{picture.uri}</Text>
+      {picture && (
+        <Image source={picture} style={{ width: 200, height: 200 }} />
+      )}
     </View>
   );
 };

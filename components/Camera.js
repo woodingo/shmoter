@@ -5,6 +5,7 @@ import { Camera as RNCamera } from 'expo-camera';
 import FeatherIcon from '@expo/vector-icons/Feather';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
+import { takePicture } from '../stores/picture';
 
 const updateRatio = (set, ref) => async () => {
   if (Platform.OS === 'android' && ref.current.getSupportedRatiosAsync) {
@@ -17,20 +18,17 @@ const updateRatio = (set, ref) => async () => {
 const snap = (ref, callback) => async () => {
   if (ref) {
     const result = await ref.current.takePictureAsync();
-
-    console.log(result);
-    callback();
+    callback(result);
   }
 };
 
 const pickImage = callback => async () => {
-  let result = await ImagePicker.launchImageLibraryAsync({
+  const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.All,
     quality: 1,
   });
 
-  console.log(result);
-  callback();
+  callback(result);
 };
 
 const Camera = props => {
@@ -52,7 +50,10 @@ const Camera = props => {
         : RNCamera.Constants.Type.front,
     );
 
-  onGetPhoto = () => props.navigation.navigate('Results');
+  onGetPhoto = picture => {
+    takePicture(picture);
+    props.navigation.navigate('Results');
+  };
 
   return permisisonGranted ? (
     <RNCamera
