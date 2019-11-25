@@ -14,24 +14,27 @@ const updateRatio = (set, ref) => async () => {
   }
 };
 
-const snap = ref => async () => {
+const snap = (ref, callback) => async () => {
   if (ref) {
-    let photo = await ref.current.takePictureAsync();
-    console.log(photo);
+    const result = await ref.current.takePictureAsync();
+
+    console.log(result);
+    callback();
   }
 };
 
-const pickImage = async () => {
+const pickImage = callback => async () => {
   let result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.All,
     quality: 1,
   });
 
   console.log(result);
+  callback();
 };
 
 const Camera = props => {
-  const [type, setType] = useState(RNCamera.Constants.Type.front);
+  const [type, setType] = useState(RNCamera.Constants.Type.back);
   const [ratio, setRatio] = useState(null);
   const [permisisonGranted, setPermission] = useState(false);
   const cameraRef = useRef(null);
@@ -49,6 +52,8 @@ const Camera = props => {
         : RNCamera.Constants.Type.front,
     );
 
+  onGetPhoto = () => props.navigation.navigate('Results');
+
   return permisisonGranted ? (
     <RNCamera
       type={type}
@@ -58,10 +63,13 @@ const Camera = props => {
       ref={cameraRef}
     >
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.button} onPress={pickImage}>
+        <TouchableOpacity style={styles.button} onPress={pickImage(onGetPhoto)}>
           <FeatherIcon name="image" style={styles.icon}></FeatherIcon>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.createPhoto} onPress={snap(cameraRef)}>
+        <TouchableOpacity
+          style={styles.createPhoto}
+          onPress={snap(cameraRef, onGetPhoto)}
+        >
           <FeatherIcon
             name="search"
             style={styles.createPhotoIcon}

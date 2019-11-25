@@ -5,7 +5,7 @@ import Camera from '../components/Camera';
 const HomeScreen = props => {
   return (
     <View style={styles.container}>
-      <Camera></Camera>
+      <Camera navigation={props.navigation}></Camera>
     </View>
   );
 };
