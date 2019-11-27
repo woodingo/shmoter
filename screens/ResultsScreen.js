@@ -4,26 +4,24 @@ import $picture from '../stores/picture';
 import { useStore } from 'effector-react';
 import SearchedImage from '../components/SearchedImage';
 import Item from '../components/Item';
+import $results from '../stores/results';
 
-const data = [
-  { key: 'A' },
-  { key: 'B' },
-  { key: 'C' },
-  { key: 'D' },
-  { key: 'E' },
-  { key: 'F' },
-];
-
-const ResultsScreen = () => {
+const ResultsScreen = props => {
   const picture = useStore($picture);
+  const results = useStore($results);
 
   return (
     <ScrollView style={styles.container}>
       {picture && <SearchedImage source={picture} />}
       <FlatList
         style={styles.list}
-        data={data}
-        renderItem={Item}
+        data={results}
+        renderItem={itemProps => (
+          <Item
+            onPress={() => props.navigation.navigate('Product')}
+            {...itemProps}
+          />
+        )}
         numColumns={2}
       />
     </ScrollView>
