@@ -1,11 +1,19 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Platform } from 'react-native';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  ActivityIndicator,
+} from 'react-native';
 import { Camera as RNCamera } from 'expo-camera';
 import FeatherIcon from '@expo/vector-icons/Feather';
 import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import { takePicture } from '../stores/picture';
+import $loaders, { changeLoaderState } from '../stores/loaders';
+import { useStore } from 'effector-react';
 
 const updateRatio = (set, ref) => async () => {
   if (Platform.OS === 'android' && ref.current.getSupportedRatiosAsync) {
@@ -17,16 +25,20 @@ const updateRatio = (set, ref) => async () => {
 
 const snap = (ref, callback) => async () => {
   if (ref) {
+    changeLoaderState({ snap: true });
     const result = await ref.current.takePictureAsync();
+    changeLoaderState({ snap: true });
     callback(result);
   }
 };
 
 const pickImage = callback => async () => {
+  changeLoaderState({ pickImage: true });
   const result = await ImagePicker.launchImageLibraryAsync({
     mediaTypes: ImagePicker.MediaTypeOptions.All,
     quality: 1,
   });
+  changeLoaderState({ pickImage: false });
 
   callback(result);
 };
@@ -36,6 +48,7 @@ const Camera = props => {
   const [ratio, setRatio] = useState(null);
   const [permisisonGranted, setPermission] = useState(false);
   const cameraRef = useRef(null);
+  const loaders = useStore($loaders);
 
   useEffect(() => {
     Permissions.askAsync(Permissions.CAMERA).then(({ status }) => {
@@ -71,10 +84,11 @@ const Camera = props => {
           style={styles.createPhoto}
           onPress={snap(cameraRef, onGetPhoto)}
         >
-          <FeatherIcon
-            name="search"
-            style={styles.createPhotoIcon}
-          ></FeatherIcon>
+          {loaders.pickImage || loaders.snap ? (
+            <ActivityIndicator />
+          ) : (
+            <FeatherIcon name="search" style={styles.createPhotoIcon} />
+          )}
         </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={onTypeChange}>
           <FeatherIcon name="refresh-cw" style={styles.icon}></FeatherIcon>
