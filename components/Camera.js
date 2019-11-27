@@ -27,7 +27,7 @@ const snap = (ref, callback) => async () => {
   if (ref) {
     changeLoaderState({ snap: true });
     const result = await ref.current.takePictureAsync();
-    changeLoaderState({ snap: true });
+    changeLoaderState({ snap: false });
     callback(result);
   }
 };
@@ -39,6 +39,10 @@ const pickImage = callback => async () => {
     quality: 1,
   });
   changeLoaderState({ pickImage: false });
+
+  if (result.cancelled) {
+    return;
+  }
 
   callback(result);
 };
@@ -78,14 +82,18 @@ const Camera = props => {
     >
       <View style={styles.buttonsContainer}>
         <TouchableOpacity style={styles.button} onPress={pickImage(onGetPhoto)}>
-          <FeatherIcon name="image" style={styles.icon}></FeatherIcon>
+          {loaders.pickImage ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <FeatherIcon name="image" style={styles.icon} />
+          )}
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.createPhoto}
           onPress={snap(cameraRef, onGetPhoto)}
         >
           {loaders.pickImage || loaders.snap ? (
-            <ActivityIndicator />
+            <ActivityIndicator color="black" />
           ) : (
             <FeatherIcon name="search" style={styles.createPhotoIcon} />
           )}
