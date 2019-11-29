@@ -13,7 +13,9 @@ import * as Permissions from 'expo-permissions';
 import * as ImagePicker from 'expo-image-picker';
 import { takePicture } from '../stores/picture';
 import $loaders, { changeLoaderState } from '../stores/loaders';
+import { updateResults } from '../stores/results';
 import { useStore } from 'effector-react';
+import { sendImage } from '../services/client';
 
 const updateRatio = (set, ref) => async () => {
   if (Platform.OS === 'android' && ref.current.getSupportedRatiosAsync) {
@@ -27,21 +29,38 @@ const snap = (ref, callback) => async () => {
   if (ref) {
     changeLoaderState({ snap: true });
     const result = await ref.current.takePictureAsync();
-    changeLoaderState({ snap: false });
-    callback(result);
+    try {
+      const response = await sendImage(result);
+      updateResults(response.data);
+      changeLoaderState({ snap: false });
+      callback(result);
+    } catch (error) {
+      console.error(error.response || error.config);
+      changeLoaderState({ snap: false });
+    }
   }
 };
 
 const pickImage = callback => async () => {
   changeLoaderState({ pickImage: true });
   const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.All,
+    mediaTypes: ImagePicker.MediaTypeOptions.Images,
     quality: 1,
   });
-  changeLoaderState({ pickImage: false });
 
   if (result.cancelled) {
+    changeLoaderState({ pickImage: false });
     return;
+  }
+
+  try {
+    const response = await sendImage(result);
+    updateResults(response.data);
+    changeLoaderState({ pickImage: false });
+    callback(result);
+  } catch (error) {
+    console.error(error.response || error.config);
+    changeLoaderState({ pickImage: false });
   }
 
   callback(result);
@@ -71,6 +90,7 @@ const Camera = props => {
     takePicture(picture);
     props.navigation.navigate('Results');
   };
+  const processing = loaders.pickImage || loaders.snap;
 
   return permisisonGranted ? (
     <RNCamera
@@ -81,7 +101,10 @@ const Camera = props => {
       ref={cameraRef}
     >
       <View style={styles.buttonsContainer}>
-        <TouchableOpacity style={styles.button} onPress={pickImage(onGetPhoto)}>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={!processing ? pickImage(onGetPhoto) : () => {}}
+        >
           {loaders.pickImage ? (
             <ActivityIndicator color="white" />
           ) : (
@@ -90,9 +113,9 @@ const Camera = props => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.createPhoto}
-          onPress={snap(cameraRef, onGetPhoto)}
+          onPress={!processing ? snap(cameraRef, onGetPhoto) : () => {}}
         >
-          {loaders.pickImage || loaders.snap ? (
+          {processing ? (
             <ActivityIndicator color="black" />
           ) : (
             <FeatherIcon name="search" style={styles.createPhotoIcon} />

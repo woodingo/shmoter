@@ -34,8 +34,7 @@ const mock = [
   },
 ];
 
-const $results = createStore(mock).on(
-  updateResults,
-  (state, results) => results,
+const $results = createStore(mock).on(updateResults, (state, results) =>
+  results.map(item => ({ ...item, key: item.img })),
 );
 export default $results;

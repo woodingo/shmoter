@@ -9,7 +9,7 @@ const Item = props => {
         <CardItem cardBody onPress={props.onPress} button>
           <Image
             source={{
-              uri: props.item.uri,
+              uri: props.item.imgUrl,
             }}
             style={{ height: 200, width: null, flex: 1 }}
           />
