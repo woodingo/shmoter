@@ -15,7 +15,7 @@
     "@expo/samples": "~3.0.3",
     "@expo/vector-icons": "^10.0.3",
     "@react-navigation/web": "^1.0.0-alpha.9",
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "effector": "^20.6.2",
     "effector-react": "^20.4.1",
     "expo": "^35.0.0",
